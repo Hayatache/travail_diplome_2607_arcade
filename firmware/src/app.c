@@ -91,6 +91,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 APP_DATA appData;
 
 static S_ADCResults adcRes ;
+
+extern SYS_INFO systeme_info;
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Callback Functions
@@ -231,7 +233,7 @@ void APP_Tasks ( void )
         bool btm2 = !Fin_de_course_1_BTM_StateGet();
         bool top2 = !Fin_de_course_1_TOP_StateGet();
         bool btm1 = !Fin_de_course_2_BTM_StateGet();
-        bool top1 = !Fin_de_course_2_TOP_StateGet(); //a reinversé 
+        bool top1 = !Fin_de_course_2_TOP_StateGet(); //a reinversï¿½ 
         Stepper_RunCalibration(&stepper_1_Data, btm1, top1);
         Stepper_RunCalibration(&stepper_2_Data, btm2, top2);
 
@@ -295,9 +297,10 @@ void APP_Tasks ( void )
         case APP_STATE_SERVICE_TASKS:
         {
             
+            systeme_info.system_temp.LM92_Temp = LM92_GetTemperature();
+
             Gestion_Menu(&Joystick_Data);
-//            sprintf(string,"%06d",);
-            //MAX7219_DisplayString(string);
+//          
             MAX7219_DisplayDigitChar(1,('0' + stepper_1_Data.speed),1);
             MAX7219_DisplayDigitChar(2,('0' + stepper_2_Data.speed),1);
             MAX7219_DisplayDigitChar(3,('0' + stepper_1_Data.Stepper_Direction),1);

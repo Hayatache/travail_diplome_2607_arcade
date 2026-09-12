@@ -3,6 +3,7 @@
 #include "Mc32Max7219.h"
 #include <stdbool.h>
 #include "app.h"
+#include "LM92.h"
 
 MENU_STATES menu_state = MENU_DEFAULT;
 SETTING_STATES setting_state = SET_DEFAULT;
@@ -37,11 +38,11 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
             break;
 
         case MENU_GAME_LOST:
-            // Défaite
+            // Dï¿½faite
             break;
 
         case MENU_GAME_STOPPED:
-            // Jeu arrêté
+            // Jeu arrï¿½tï¿½
             break;
 
         case MENU_SETTING:
@@ -159,31 +160,94 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
             break;
 
         case SEE_NBR_PLAYED_GAME_SESSION:
-            MAX7219_DisplayDigitChar(2,'G',0);
-            MAX7219_DisplayDigitChar(3,'S',0);
+            switch(modification_state){
+                case MOD_DEFAULT : 
+                    MAX7219_DisplayDigitChar(1,'S',0);
+                    MAX7219_DisplayDigitChar(2,'G',0);
+                    MAX7219_DisplayDigitChar(3,'S',0);
+                    MAX7219_DisplayDigitChar(4,' ',0);
+                    MAX7219_DisplayDigitChar(5,' ',0);
+                    break;
+                case MOD_ENTERING_SETTING :
+                    char string[5];
+                    sprintf(string,"%05d", systeme_info.nbr_game_session);
+                    MAX7219_DisplayString(string);
+                    break;
+                case MOD_EXITING_SETTING : 
+                    break;
+            }
             break;
 
         case SEE_NBR_PLAYED_GAME_ALL_TIME:
-            MAX7219_DisplayDigitChar(2,'G',0);
-            MAX7219_DisplayDigitChar(3,'A',0);
+            switch(modification_state){
+                case MOD_DEFAULT : 
+                    MAX7219_DisplayDigitChar(1,'S',0);
+                    MAX7219_DisplayDigitChar(2,'G',0);
+                    MAX7219_DisplayDigitChar(3,'A',0);
+                    MAX7219_DisplayDigitChar(4,' ',0);
+                    MAX7219_DisplayDigitChar(5,' ',0);
+                    break;
+                case MOD_ENTERING_SETTING :
+                    char string[5];
+                    sprintf(string,"%05d", systeme_info.nbr_game_all_time);
+                    MAX7219_DisplayString(string);
+                    break;
+                case MOD_EXITING_SETTING : 
+                    break;
+            }
             break;
 
         case SEE_SYS_TEMP:
-            
-            MAX7219_DisplayDigitChar(2,'t',0);
-            MAX7219_DisplayDigitChar(3,'o',0);
-            MAX7219_DisplayDigitChar(4,' ',0);
+            switch(modification_state){
+                case MOD_DEFAULT : 
+                    MAX7219_DisplayDigitChar(1,' ',0);
+                    MAX7219_DisplayDigitChar(2,'t',0);
+                    MAX7219_DisplayDigitChar(3,'o',0);
+                    MAX7219_DisplayDigitChar(4,' ',0);
+                    MAX7219_DisplayDigitChar(5,' ',0);
+                    break;
+                case MOD_ENTERING_SETTING :
+                    sprintf(string,"%05.1f", systeme_info.system_temp.LM92_Temp);
+                    MAX7219_DisplayString(string);
+                    break;
+                case MOD_EXITING_SETTING : 
+                    break;
+            }
             break;
         case SEE_ALL_TIME_BEST_SCORE:
-            
-            MAX7219_DisplayDigitChar(2,'b',0);
-            MAX7219_DisplayDigitChar(3,'s',0);
-            MAX7219_DisplayDigitChar(4,'c',0);
+            switch(modification_state){
+                case MOD_DEFAULT : 
+                    MAX7219_DisplayDigitChar(1,'S',0);
+                    MAX7219_DisplayDigitChar(2,'b',0);
+                    MAX7219_DisplayDigitChar(3,'s',0);
+                    MAX7219_DisplayDigitChar(4,'c',0);
+                    MAX7219_DisplayDigitChar(5,' ',0);
+                    break;
+                case MOD_ENTERING_SETTING :
+                    char string[5];
+                    sprintf(string,"%05d", systeme_info.best_time_score);
+                    MAX7219_DisplayString(string);
+                    break;
+                case MOD_EXITING_SETTING : 
+                    break;
+            }
             break;
-        case SEE_LAST_SCORE:
-            MAX7219_DisplayDigitChar(2,'l',0);
-            MAX7219_DisplayDigitChar(3,'s',0);
-            MAX7219_DisplayDigitChar(4,'c',0);
+            switch(modification_state){
+                case MOD_DEFAULT : 
+                    MAX7219_DisplayDigitChar(1,'S',0);
+                    MAX7219_DisplayDigitChar(2,'L',0);
+                    MAX7219_DisplayDigitChar(3,'s',0);
+                    MAX7219_DisplayDigitChar(4,'c',0);
+                    MAX7219_DisplayDigitChar(5,' ',0);
+                    break;
+                case MOD_ENTERING_SETTING :
+                    char string[5];
+                    sprintf(string,"%05d", systeme_info.last_time_score);
+                    MAX7219_DisplayString(string);
+                    break;
+                case MOD_EXITING_SETTING : 
+                    break;
+            }
             break;
 
         case SYS_RECALIBRATION:

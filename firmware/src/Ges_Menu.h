@@ -83,16 +83,24 @@ typedef enum
 
 } MODIFICATION_STATES;
 
-    typedef struct
-    {
-        uint32_t nbr_game_all_time;
-        uint32_t nbr_game_session;
-        uint32_t best_time_score;
-        uint32_t last_time_score;
-        uint32_t sys_temp;
-        uint8_t sys_brightness;
-        
-    } SYS_INFO;
+  typedef struct
+  {
+      uint32_t nbr_game_all_time;
+      uint32_t nbr_game_session;
+      uint32_t best_time_score;
+      uint32_t last_time_score;
+      SYS_TEMP sys_temp;
+      uint8_t sys_brightness;
+      
+  } SYS_INFO;
+
+  typedef struct
+  {
+      float LM92_Temp;
+      float DS18B20_Stepper_1;
+      float DS18B20_Stepper_2;
+      
+  } SYS_TEMP;
 
 
 void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData);
