@@ -157,10 +157,16 @@ void SYS_Initialize ( void* data )
     /*** SPI Driver Index 0 initialization***/
 
     sysObj.spiObjectIdx0 = DRV_SPI_Initialize(DRV_SPI_INDEX_0, (const SYS_MODULE_INIT  * const)NULL);
+
+    /*** SPI Driver Index 1 initialization***/
+
+    sysObj.spiObjectIdx1 = DRV_SPI_Initialize(DRV_SPI_INDEX_1, (const SYS_MODULE_INIT  * const)NULL);
     /*Initialize TMR0 */
     DRV_TMR0_Initialize();
     /*Initialize TMR1 */
     DRV_TMR1_Initialize();
+    /*Initialize TMR2 */
+    DRV_TMR2_Initialize();
  
  
     /* Initialize System Services */

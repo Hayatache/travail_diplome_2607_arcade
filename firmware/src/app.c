@@ -92,7 +92,6 @@ APP_DATA appData;
 
 static S_ADCResults adcRes ;
 
-extern SYS_INFO systeme_info;
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Callback Functions
@@ -219,9 +218,17 @@ bool calibration_status_test = false;
 
 bool do_this_once = false;
 int calibration_status = 2;
+int cpt_sound= 100;
+
+
+extern SYS_INFO systeme_info;
 
 void APP_Tasks ( void )
 {
+    
+    static bool game_won = false;
+    static uint8_t cpt_start_game = 0;
+    static uint8_t cpt_reset_game = 0;
     APP_Ges_stepper(&stepper_1_Data);
     APP_Ges_stepper(&stepper_2_Data);
     
@@ -267,6 +274,7 @@ void APP_Tasks ( void )
             
             DRV_TMR0_Start();
             DRV_TMR1_Start();
+            DRV_TMR2_Start();
             DRV_OC0_Enable();
             DRV_OC1_Enable();
             
@@ -291,21 +299,20 @@ void APP_Tasks ( void )
             stepper_1_Data.nb_step_left = 0;
             stepper_2_Data.nb_step_left = 0;
             appData.state = APP_STATE_SERVICE_WAIT;
+            appData.in_game = false;
+            
+            
+            PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_C, PORTS_BIT_POS_4,true);
             break;
         }
 
         case APP_STATE_SERVICE_TASKS:
         {
             
-            systeme_info.system_temp.LM92_Temp = LM92_GetTemperature();
+            systeme_info.sys_temp.LM92_Temp = LM92_GetTemperature();
+
 
             Gestion_Menu(&Joystick_Data);
-//          
-            MAX7219_DisplayDigitChar(1,('0' + stepper_1_Data.speed),1);
-            MAX7219_DisplayDigitChar(2,('0' + stepper_2_Data.speed),1);
-            MAX7219_DisplayDigitChar(3,('0' + stepper_1_Data.Stepper_Direction),1);
-            MAX7219_DisplayDigitChar(4,('0' + stepper_2_Data.Stepper_Direction),1);
-            cpt_aff++;
 
             appData.state = APP_STATE_SERVICE_WAIT;
             break;
@@ -358,34 +365,37 @@ void APP_Tasks ( void )
             static uint8_t compteur_vitesse_stepper_1 = 0;
             static uint8_t compteur_vitesse_stepper_2 = 0;
             
-            if(compteur_vitesse_stepper_1 >= stepper_1_Data.speed){
-                compteur_vitesse_stepper_1 = 0;
-                if(stepper_1_Data.Stepper_Direction == 0){
-                    APP_Move_Up(&stepper_1_Data,5);
+            if(appData.in_game){
+                if(compteur_vitesse_stepper_1 >= stepper_1_Data.speed){
+                    compteur_vitesse_stepper_1 = 0;
+                    if(stepper_1_Data.Stepper_Direction == 0){
+                        APP_Move_Up(&stepper_1_Data,5);
+                    }
+                    else if (stepper_1_Data.Stepper_Direction == 1){
+                        APP_Move_Down(&stepper_1_Data,5);
+                    }
                 }
-                else if (stepper_1_Data.Stepper_Direction == 1){
-                    APP_Move_Down(&stepper_1_Data,5);
+                else{
+                    compteur_vitesse_stepper_1++; 
                 }
-            }
-            else{
-                compteur_vitesse_stepper_1++; 
-            }
-            
-            if(compteur_vitesse_stepper_2 >= stepper_2_Data.speed){
-                compteur_vitesse_stepper_2 = 0;
-                if(stepper_2_Data.Stepper_Direction == 0){
-                    APP_Move_Up(&stepper_2_Data,5);
+
+                if(compteur_vitesse_stepper_2 >= stepper_2_Data.speed){
+                    compteur_vitesse_stepper_2 = 0;
+                    if(stepper_2_Data.Stepper_Direction == 0){
+                        APP_Move_Up(&stepper_2_Data,5);
+                    }
+                    else if (stepper_2_Data.Stepper_Direction == 1){
+                        APP_Move_Down(&stepper_2_Data,5);
+                    }
                 }
-                else if (stepper_2_Data.Stepper_Direction == 1){
-                    APP_Move_Down(&stepper_2_Data,5);
+                else{
+                    compteur_vitesse_stepper_2 ++ ;
                 }
-            }
-            else{
-                compteur_vitesse_stepper_2 ++ ;
             }
             appData.state = APP_STATE_SERVICE_WAIT;
             break;
         }
+
         case APP_STATE_SERVICE_WAIT:
         {
 

@@ -192,6 +192,11 @@ int32_t DRV_SPI0_PolledMasterEBM8BitTasks ( struct DRV_SPI_OBJ * dObj );
 int32_t DRV_SPI0_PolledErrorTasks(struct DRV_SPI_OBJ * dObj);
 int32_t DRV_SPI0_MasterEBMSend8BitPolled( struct DRV_SPI_OBJ * dObj );
 int32_t DRV_SPI0_MasterEBMReceive8BitPolled( struct DRV_SPI_OBJ * dObj );
+
+int32_t DRV_SPI1_PolledMasterEBM8BitTasks ( struct DRV_SPI_OBJ * dObj );
+int32_t DRV_SPI1_PolledErrorTasks(struct DRV_SPI_OBJ * dObj);
+int32_t DRV_SPI1_MasterEBMSend8BitPolled( struct DRV_SPI_OBJ * dObj );
+int32_t DRV_SPI1_MasterEBMReceive8BitPolled( struct DRV_SPI_OBJ * dObj );
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus
 }

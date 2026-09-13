@@ -93,6 +93,7 @@ typedef enum
     APP_STATE_SERVICE_CALIBRATION,
     APP_STATE_SERVICE_READ_ADC,
     APP_STATE_SERVICE_JOYSTICK_X_ACTION,
+
             
 	/* TODO: Define states used by the application state machine. */
 
@@ -116,6 +117,7 @@ typedef struct
 {
     /* The application's current state */
     APP_STATES state;
+    bool in_game;
     /* TODO: Define any additional data used by the application. */
 
 } APP_DATA;

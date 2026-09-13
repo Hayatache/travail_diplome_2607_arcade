@@ -129,3 +129,11 @@ void __ISR(_TIMER_2_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance1(void)
 
     
 }
+
+
+
+void __ISR(_TIMER_3_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance2(void)
+{
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_3);
+    dac_ad5620_generate_pulse();
+}

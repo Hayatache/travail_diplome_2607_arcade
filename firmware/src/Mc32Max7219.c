@@ -71,7 +71,7 @@ static const MAX7219_Font_t MAX7219_Font[] =
     {'W', 0x3E}, {'X', 0x37}, {'Y', 0x3B}, {'y', 0x3B},
     {'Z', 0x6D}, {'z', 0x6D},
 
-    {'-', 0x01}, {'_', 0x08}, {' ', 0x00},
+    {'-', 0x01}, {'_', 0x08}, {' ', 0x00}, {'=', 0x09}
 };
 #define MAX7219_FONT_SIZE   (sizeof(MAX7219_Font) / sizeof(MAX7219_Font[0]))
 

@@ -85,6 +85,14 @@ typedef enum
 
   typedef struct
   {
+      float LM92_Temp;
+      float DS18B20_Stepper_1;
+      float DS18B20_Stepper_2;
+      
+  } SYS_TEMP;
+  
+  typedef struct
+  {
       uint32_t nbr_game_all_time;
       uint32_t nbr_game_session;
       uint32_t best_time_score;
@@ -94,13 +102,7 @@ typedef enum
       
   } SYS_INFO;
 
-  typedef struct
-  {
-      float LM92_Temp;
-      float DS18B20_Stepper_1;
-      float DS18B20_Stepper_2;
-      
-  } SYS_TEMP;
+
 
 
 void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData);

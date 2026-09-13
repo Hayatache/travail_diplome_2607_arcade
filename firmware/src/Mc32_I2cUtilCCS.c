@@ -9,8 +9,8 @@
 //	Compilateur	:	XC32 V1.33 & Harmony V1.00
 //  Modifications :
 //  	CHR 19.03.2015  Migration sur plib_i2c de Harmony 1.00   CHR
-//      CHR 12.04.2016  adaptaion dï¿½tails pour plib_i2c de Harmony 1.06   CHR
-//		SCA 04.04.2017  Complï¿½ments commentaires i2c_init HighFrequencyEnable/Disable
+//      CHR 12.04.2016  adaptaion détails pour plib_i2c de Harmony 1.06   CHR
+//		SCA 04.04.2017  Compléments commentaires i2c_init HighFrequencyEnable/Disable
 //  	SCA 18.03.2024  v1.51 MPLABX 5.50/xc32 2.50/Harmony 2.06
 //                   Correction commentaire acknowledge i2c_write()
 //--------------------------------------------------------
@@ -47,8 +47,8 @@ void i2c_init( bool Fast )
     
 	// LOW frequency is enabled (**NOTE** PLIB function logic reverted)
 	// A 100k et 400kHz, on devrait activer le "slope control" 
-	// (cf. ï¿½ I2C datasheet PIC32). Toutefois, le LM92 a des problï¿½mes 
-	// d'incompatibilitï¿½ avec les flancs trop lents => dï¿½sactivï¿½
+	// (cf. § I2C datasheet PIC32). Toutefois, le LM92 a des problèmes 
+	// d'incompatibilité avec les flancs trop lents => désactivé
 	// Voir application note 
 	// "AN-2113 Applying I2C Compatible Temperature Sensors in Systems with Slow Clock Edges"
     PLIB_I2C_HighFrequencyEnable(KIT_I2C_BUS);
@@ -75,7 +75,7 @@ void i2c_init( bool Fast )
 //------------------------------------------------------------------------------
 // i2c_start()
 //
-// Dï¿½bute la transaction I2C master
+// Débute la transaction I2C master
 //
 // Adaptation plib_i2c  : 19.03.2015 CHR
 
@@ -158,12 +158,12 @@ void i2c_reStart(void)
 // i2c_write()
 //
 // Syntaxe : 	i2c_write (data);
-// En mode maï¿½tre, la fonction gï¿½nï¿½re le signal d'horloge, 
-//  en mode esclave elle attend le signal d'horloge du maï¿½tre.
-// Paramï¿½tre data : la valeur 8 bits ï¿½ transmettre.
-// Valeur de retour : acknowledge donnï¿½ par l'autre partie
-//  false : l'autre partie n'a pas quittancï¿½ le byte transmis,
-//  true  : l'autre partie a quittancï¿½ le byte transmis.
+// En mode maître, la fonction génère le signal d'horloge, 
+//  en mode esclave elle attend le signal d'horloge du maître.
+// Paramètre data : la valeur 8 bits à transmettre.
+// Valeur de retour : acknowledge donné par l'autre partie
+//  false : l'autre partie n'a pas quittancé le byte transmis,
+//  true  : l'autre partie a quittancé le byte transmis.
 //------------------------------------------------------------------------------
 //
 // Modification de  BOOL TransmitOneByte( UINT8 data )
@@ -174,7 +174,7 @@ bool i2c_write( uint8_t data )
 {
     bool  AckBit;
   
-    // Wait for the bus to be idle (nï¿½cessaire aprï¿½s un reStart)
+    // Wait for the bus to be idle (nécessaire aprés un reStart)
     while(PLIB_I2C_BusIsIdle(KIT_I2C_BUS) == false);
 
     // Wait for the transmitter to be ready
@@ -221,7 +221,7 @@ void i2c_stop( void )
 //
 // Syntaxe : 	data = i2c_read (ack);
 // La fonction retourne l'octet lu.
-// Paramï¿½tre ackTodo :
+// Paramètre ackTodo :
 //  1 (true)  signifie qu'il faut effectuer l'acquittement.
 //  0 (false) signifie qu'il ne faut pas effectuer l'acquittement.
 // Adaptation plib_i2c  : 19.03.2015 CHR

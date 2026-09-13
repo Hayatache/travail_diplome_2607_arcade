@@ -139,3 +139,95 @@ int32_t DRV_SPI0_MasterEBMReceive8BitPolled( struct DRV_SPI_OBJ * pDrvObj )
     return 0;
 }
 
+int32_t DRV_SPI1_MasterEBMSend8BitPolled( struct DRV_SPI_OBJ * pDrvObj )
+{
+    register DRV_SPI_JOB_OBJECT * currentJob = pDrvObj->currentJob;
+
+    /* Determine the maximum number of bytes we can send to the FIFO*/
+        uint8_t symbolsInTransit = MAX(pDrvObj->symbolsInProgress, PLIB_SPI_FIFOCountGet(SPI_ID_1, SPI_FIFO_TYPE_TRANSMIT));
+        uint8_t bufferBytes = PLIB_SPI_TX_8BIT_FIFO_SIZE(SPI_ID_1) - symbolsInTransit;
+    /* Figure out how much data we can send*/
+    size_t dataUnits = MIN(currentJob->dataLeftToTx, bufferBytes);
+
+    size_t counter;
+
+    if (dataUnits != 0)
+    {
+        /* Adjust the maximum buffer size downwards based on how much data we'll be sending*/
+        bufferBytes -= dataUnits;
+        currentJob->dataLeftToTx -= dataUnits;
+        /* Set the location in the buffer of where to start sending from*/
+        uint8_t *bufferLoc = &(currentJob->txBuffer[currentJob->dataTxed]);
+        for (counter = 0; counter < dataUnits; counter++)
+        {
+            /* Send a unit/symbol of data*/
+            PLIB_SPI_BufferWrite(SPI_ID_1, bufferLoc[counter]);
+        }
+        /* Update the number of bytes transmitted*/
+        currentJob->dataTxed += dataUnits;
+        /* Adjust the symbols in progress */
+        pDrvObj->symbolsInProgress += dataUnits;
+    }
+    size_t dummyUnits = MIN(currentJob->dummyLeftToTx, bufferBytes);
+    if (dummyUnits != 0)
+    {
+        currentJob->dummyLeftToTx -= dummyUnits;
+
+        /* Adjust the symbols in progress */
+        pDrvObj->symbolsInProgress += dummyUnits;
+        
+        for (counter = 0; counter < dummyUnits; counter++)
+        {
+            PLIB_SPI_BufferWrite(SPI_ID_1, (uint8_t)pDrvObj->dummyByteValue);
+        }
+    }
+    return 0;
+}
+
+int32_t DRV_SPI1_MasterEBMReceive8BitPolled( struct DRV_SPI_OBJ * pDrvObj )
+{
+    register DRV_SPI_JOB_OBJECT * currentJob = pDrvObj->currentJob;
+
+    /* Figure out how many bytes are waiting to be received."*/
+    uint8_t bufferBytes = PLIB_SPI_FIFOCountGet(SPI_ID_1, SPI_FIFO_TYPE_RECEIVE);
+    /* Calculate the maximum number of data bytes that can be received*/
+    size_t dataUnits = MIN(currentJob->dataLeftToRx, bufferBytes);
+    size_t counter;
+
+    if (dataUnits != 0)
+    {
+        bufferBytes -= dataUnits;
+        currentJob->dataLeftToRx -= dataUnits;
+        /* Set the buffer location to receive bytes from the SPI to*/
+        uint8_t *bufferLoc = &(currentJob->rxBuffer[currentJob->dataRxed]);
+        for (counter = 0; counter < dataUnits; counter++)
+        {
+            /* Receive the data from the SPI */
+            bufferLoc[counter] = PLIB_SPI_BufferRead(SPI_ID_1);
+        }
+        /* Adjust the amount of data that has been received */
+        currentJob->dataRxed += dataUnits;
+        /* Update the symbols in progress so we can send more units later */
+        pDrvObj->symbolsInProgress -= dataUnits;
+    }
+
+    /* Figure out the maximum number of dummy data to be received */
+    size_t dummyUnits = MIN(currentJob->dummyLeftToRx, bufferBytes);
+    if (dummyUnits != 0)
+    {
+        /* Lower the number of dummy bytes to be received */
+        currentJob->dummyLeftToRx -= dummyUnits;
+        pDrvObj->symbolsInProgress -= dummyUnits;
+        for (counter = 0; counter < dummyUnits; counter++)
+        {
+            /* Receive and throw away the byte.  Note: We cannot just clear the
+               buffer because we have to keep track of how many symbols/units we
+               have received, and the number may have increased since we checked
+               how full the buffer is.*/
+            PLIB_SPI_BufferRead(SPI_ID_1);
+        }
+    }
+
+    return 0;
+}
+
