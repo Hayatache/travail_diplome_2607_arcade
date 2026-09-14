@@ -27,15 +27,16 @@
 #define AD5620_CODE_MAX             0xFFFu   // VOUT ~ 2.5 V (version -1)
 #define AD5620_CODE_MID             0x800u   // VOUT ~ 1.25 V
 
-/* ---------------------------------------------------------------
- * Broche SYNC (CS) du DAC
- * A ADAPTER : remplacer par la macro generee par Harmony/MHC
- * pour la broche reellement cablee sur SYNC.
- * Exemples possibles :
- *   #define DAC_SYNC_W(x)   DAC_SYNC_Set() / DAC_SYNC_Clear()
- *   #define DAC_SYNC_W(x)   PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_x, PORTS_BIT_POS_x, x)
- * --------------------------------------------------------------- */
-#define DAC_SYNC_W(x)        /* TODO: a completer selon le pinout reel */
+
+typedef struct
+{
+    float frequency_note_1;
+    float frequency_note_2;
+    float frequency_note_3;
+    float frequency_note_4;
+    uint8_t nb_note;
+    bool sound_for_a_tick;
+} SOUND_DATA;
 
 /* ---------------------------------------------------------------
  * Prototypes
@@ -61,5 +62,9 @@ void dac_ad5620_power_down(uint16_t pd_mode);
 void dac_ad5620_generate_pulse();
 
 void Audio_SetFrequency(float frequency);
+void Play_Sound_1_Tick(SOUND_DATA *ptr_Sound_data);
 
+
+    
+    
 #endif /* _AD5620_H */

@@ -3,44 +3,113 @@
 #include "Ges_Stepper.h"
 #include <stdint.h>
 #include <stdbool.h>
-void ADC_TO_SPEED(STEPPER_DATA *ptr_stepperData, uint16_t adc , uint16_t *ptr_ADC_Mid_point){
+#define HYSTERESIS_JOYSTICK  20
 
+void ADC_TO_SPEED(STEPPER_DATA *ptr_stepperData,
+                  uint16_t adc,
+                  uint16_t *ptr_ADC_Mid_point)
+{
     int Speed_Value_ADC;
-    if (adc > *ptr_ADC_Mid_point + DEAD_ZONE_JOYSTICK)
-        {
-        // Joystick vers le haut 
-        Speed_Value_ADC =
-            5 - ((adc - (*ptr_ADC_Mid_point + DEAD_ZONE_JOYSTICK)) * 4)
-            / (1023 - (*ptr_ADC_Mid_point + DEAD_ZONE_JOYSTICK));
-        if (Speed_Value_ADC < 2)
-            Speed_Value_ADC = 2;
-        if (Speed_Value_ADC > 5)
-            Speed_Value_ADC = 5;
-        ptr_stepperData->speed = Speed_Value_ADC;
-        ptr_stepperData->Stepper_Direction = 1;
-     }
-     else if (adc < *ptr_ADC_Mid_point - DEAD_ZONE_JOYSTICK)
-     {
-        // Joystick vers le bas 
-        Speed_Value_ADC =
-            5 - (((*ptr_ADC_Mid_point - DEAD_ZONE_JOYSTICK) - adc) * 4)
-            / (*ptr_ADC_Mid_point - DEAD_ZONE_JOYSTICK);
-        if (Speed_Value_ADC < 2)
-            Speed_Value_ADC = 2;
-        if (Speed_Value_ADC > 5)
-            Speed_Value_ADC = 5;
-        ptr_stepperData->speed = Speed_Value_ADC;
-        ptr_stepperData->Stepper_Direction = 0;
-     }
-     else
-     {
-        // Joystick au milieu 
-        Speed_Value_ADC = 0;
-        ptr_stepperData->speed = 0;
-        ptr_stepperData->Stepper_Direction = 2;
-     }
-}
 
+    uint16_t upper_start =
+        *ptr_ADC_Mid_point + DEAD_ZONE_JOYSTICK + HYSTERESIS_JOYSTICK;
+
+    uint16_t upper_stop =
+        *ptr_ADC_Mid_point + DEAD_ZONE_JOYSTICK;
+
+    uint16_t lower_start =
+        *ptr_ADC_Mid_point - DEAD_ZONE_JOYSTICK - HYSTERESIS_JOYSTICK;
+
+    uint16_t lower_stop =
+        *ptr_ADC_Mid_point - DEAD_ZONE_JOYSTICK;
+
+
+    /* ========================= */
+    /* Joystick vers le haut      */
+    /* ========================= */
+
+    if (ptr_stepperData->Stepper_Direction == 1)
+    {
+        /* Le moteur est déjà en mouvement vers le haut */
+
+        if (adc <= upper_stop)
+        {
+            /* Retour dans la zone morte */
+            ptr_stepperData->speed = 0;
+            ptr_stepperData->Stepper_Direction = 2;
+            return;
+        }
+
+        /* Plus l'ADC augmente, plus la vitesse augmente */
+        Speed_Value_ADC =
+            1 + ((adc - upper_stop) * 4)
+            / (1023 - upper_stop);
+
+        if (Speed_Value_ADC < 1)
+            Speed_Value_ADC = 1;
+
+        if (Speed_Value_ADC > 5)
+            Speed_Value_ADC = 5;
+
+        ptr_stepperData->speed = Speed_Value_ADC;
+    }
+
+
+    /* ========================= */
+    /* Joystick vers le bas      */
+    /* ========================= */
+
+    else if (ptr_stepperData->Stepper_Direction == 0)
+    {
+        /* Le moteur est déjà en mouvement vers le bas */
+
+        if (adc >= lower_stop)
+        {
+            /* Retour dans la zone morte */
+            ptr_stepperData->speed = 0;
+            ptr_stepperData->Stepper_Direction = 2;
+            return;
+        }
+
+        /* Plus l'ADC diminue, plus la vitesse augmente */
+        Speed_Value_ADC =
+            1 + ((lower_stop - adc) * 4)
+            / lower_stop;
+
+        if (Speed_Value_ADC < 1)
+            Speed_Value_ADC = 1;
+
+        if (Speed_Value_ADC > 5)
+            Speed_Value_ADC = 5;
+
+        ptr_stepperData->speed = Speed_Value_ADC;
+    }
+
+
+    /* ========================= */
+    /* Moteur à l'arrêt          */
+    /* ========================= */
+
+    else
+    {
+        if (adc > upper_start)
+        {
+            /* Démarrage vers le haut */
+            ptr_stepperData->Stepper_Direction = 1;
+        }
+        else if (adc < lower_start)
+        {
+            /* Démarrage vers le bas */
+            ptr_stepperData->Stepper_Direction = 0;
+        }
+        else
+        {
+            ptr_stepperData->speed = 0;
+            ptr_stepperData->Stepper_Direction = 2;
+            return;
+        }
+    }
+}
 uint8_t ADC_TO_DIG(uint16_t adc , uint16_t ADC_Mid_point){
 
     if (adc > ADC_Mid_point + DEAD_ZONE_JOYSTICK)

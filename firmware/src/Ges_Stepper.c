@@ -145,9 +145,9 @@ void APP_Ges_stepper(STEPPER_DATA *stepperData)
 
         case STEPPER_MOVING:
         {
+            stepperData->TMR0_is_done = true;
             if (stepperData->TMR0_is_done)
             {
-                stepperData->TMR0_is_done = false;
 
                 if (stepperData->nb_step_left != 0)
                 {

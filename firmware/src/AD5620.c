@@ -62,3 +62,63 @@ void Audio_SetFrequency(float frequency)
 
      PLIB_TMR_Period16BitSet(TMR_ID_3,timer_value);
 }
+
+void Play_Sound_1_Tick(SOUND_DATA *ptr_Sound_data)
+{
+    static uint8_t current_note = 1;
+
+    /* Limitation du nombre de notes */
+    if(ptr_Sound_data->nb_note > 4)
+    {
+        ptr_Sound_data->nb_note = 4;
+    }
+
+    if(ptr_Sound_data->nb_note < 1)
+    {
+        ptr_Sound_data->nb_note = 1;
+    }
+
+    /* Jouer la note actuelle */
+    switch(current_note)
+    {
+        case 1:
+            Audio_SetFrequency(ptr_Sound_data->frequency_note_1);
+            break;
+
+        case 2:
+            Audio_SetFrequency(ptr_Sound_data->frequency_note_2);
+            break;
+
+        case 3:
+            Audio_SetFrequency(ptr_Sound_data->frequency_note_3);
+            break;
+
+        case 4:
+            Audio_SetFrequency(ptr_Sound_data->frequency_note_4);
+            break;
+    }
+
+    /* Gestion du son pendant un tick */
+    if(ptr_Sound_data->sound_for_a_tick)
+    {
+        PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_C,PORTS_BIT_POS_4,false
+        );
+
+        ptr_Sound_data->sound_for_a_tick = false;
+    }
+    else
+    {
+        /* Passer à la note suivante */
+        
+
+        /* Recommencer à la note 1 */
+        if(current_note > ptr_Sound_data->nb_note)
+        {
+            current_note = 1;
+            PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_C,PORTS_BIT_POS_4, true);
+        }
+        else{
+            current_note++;
+        }
+    }
+}

@@ -63,7 +63,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "app.h"
 #include "system_definitions.h"
 #include "Ges_Stepper.h"    
-
+#include "AD5620.h"
 // *****************************************************************************
 // *****************************************************************************
 // Section: System Interrupt Vector Functions
@@ -78,9 +78,10 @@ int ctr_tasks = 0;
 int ctr_read_adc = 0;
 int vald = 1;
 extern APP_DATA appData;
+extern SOUND_DATA Sound_Data;
 extern bool calibration_ADC_status ;
 extern bool calibration_status_test ;
-void __ISR(_TIMER_1_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
+void __ISR(_TIMER_1_VECTOR, ipl2AUTO) IntHandlerDrvTmrInstance0(void)
 {
     PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_1);
     // Timer 1 ISR
@@ -88,8 +89,10 @@ void __ISR(_TIMER_1_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
         ctr_tasks = 10;
         if(appData.state == APP_STATE_SERVICE_WAIT)
         {
-            if(calibration_status_test)
+            if(calibration_status_test){
                 appData.state = APP_STATE_SERVICE_TASKS;
+                Play_Sound_1_Tick(&Sound_Data);
+            }
             else 
                 appData.state = APP_STATE_SERVICE_CALIBRATION;
         }
@@ -115,8 +118,8 @@ void __ISR(_TIMER_2_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance1(void)
    
     // Timer 2 ISR
     
-        stepper_1_Data.TMR0_is_done = true;
-        stepper_2_Data.TMR0_is_done = true;
+        APP_Ges_stepper(&stepper_2_Data);
+        APP_Ges_stepper(&stepper_1_Data);
         if(cpt_joystick_action >= 5){
             cpt_joystick_action = 0;
             if(appData.state == APP_STATE_SERVICE_WAIT)

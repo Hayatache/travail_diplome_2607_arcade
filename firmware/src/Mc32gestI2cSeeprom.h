@@ -12,8 +12,8 @@
 /*--------------------------------------------------------*/
 
 // Définition pour MCP79411
-#define MCP79411_RTCC_R    0x6F         
-#define MCP79411_RTCC_W    0x6E  
+#define MCP79411_RTCC_R    0xDF         
+#define MCP79411_RTCC_W    0xDE  
 #define MCP79411_EEPROM_R    0xAF         
 #define MCP79411_EEPROM_W    0xAE         
 #define MCP79411_EEPROM_BEG   0x00         

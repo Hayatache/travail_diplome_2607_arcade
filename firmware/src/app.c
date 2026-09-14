@@ -67,6 +67,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "Mc32CoreTimer.h"
 #include "Mc32gestI2cSeeprom.h"
 #include "system_config.h"
+#include "AD5620.h"
 // *****************************************************************************
 // *****************************************************************************
 // Section: Global Data Definitions
@@ -89,7 +90,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 */
 
 APP_DATA appData;
-
+SOUND_DATA Sound_Data;
 static S_ADCResults adcRes ;
 
 // *****************************************************************************
@@ -154,13 +155,9 @@ static void Stepper_RunCalibration(STEPPER_DATA *stepperData, bool btmPressed, b
             }
             else if(stepperData->state == STEPPER_STBY)
             {
-                if(ctr_calibration >= 50){
-                    ctr_calibration = 0;
-                    APP_Move_Calibration(stepperData, STEPPER_DIR_DOWN, STEPPER_CALIB_SEARCH_STEPS);
-                }
-                else{
-                    ctr_calibration ++;
-                }
+
+                APP_Move_Calibration(stepperData, STEPPER_DIR_DOWN, STEPPER_CALIB_SEARCH_STEPS);
+
             }
             break;
         }
@@ -175,13 +172,9 @@ static void Stepper_RunCalibration(STEPPER_DATA *stepperData, bool btmPressed, b
             }
             else if(stepperData->state == STEPPER_STBY)
             {
-                if(ctr_calibration >= 50){
-                    ctr_calibration = 0;
-                    APP_Move_Calibration(stepperData, STEPPER_DIR_UP, STEPPER_CALIB_SEARCH_STEPS);
-                }
-                else{
-                    ctr_calibration ++;
-                }
+
+                APP_Move_Calibration(stepperData, STEPPER_DIR_UP, STEPPER_CALIB_SEARCH_STEPS);
+
             }
             break;
         }
@@ -223,14 +216,16 @@ int cpt_sound= 100;
 
 extern SYS_INFO systeme_info;
 
+
+
 void APP_Tasks ( void )
 {
     
     static bool game_won = false;
     static uint8_t cpt_start_game = 0;
     static uint8_t cpt_reset_game = 0;
-    APP_Ges_stepper(&stepper_1_Data);
-    APP_Ges_stepper(&stepper_2_Data);
+
+        
     
     /* Surveillance des fins de course a chaque passage de boucle (pas
        seulement au tick ~210 ms) pour arreter le moteur au plus vite. */
@@ -250,9 +245,15 @@ void APP_Tasks ( void )
     }
 
     if(calibration_status_test && !do_this_once){
-        do_this_once = true;
-        APP_Move_To(&stepper_1_Data,250);
-        APP_Move_To(&stepper_2_Data,250);
+        do_this_once = true;        
+        Sound_Data.frequency_note_1 = 523.251;
+        Sound_Data.frequency_note_2 = 783.991;
+        Sound_Data.frequency_note_3 = 932.327;
+        Sound_Data.nb_note = 3;
+        Sound_Data.sound_for_a_tick = true;
+        APP_Move_To(&stepper_1_Data,1000);
+        APP_Move_To(&stepper_2_Data,1000);
+
     }
     calibration_status_test = calibration_ADC_status && calibration_Moteur_status;
     /* Check the application's current state. */
@@ -364,34 +365,23 @@ void APP_Tasks ( void )
         {
             static uint8_t compteur_vitesse_stepper_1 = 0;
             static uint8_t compteur_vitesse_stepper_2 = 0;
-            
             if(appData.in_game){
-                if(compteur_vitesse_stepper_1 >= stepper_1_Data.speed){
-                    compteur_vitesse_stepper_1 = 0;
-                    if(stepper_1_Data.Stepper_Direction == 0){
-                        APP_Move_Up(&stepper_1_Data,5);
-                    }
-                    else if (stepper_1_Data.Stepper_Direction == 1){
-                        APP_Move_Down(&stepper_1_Data,5);
-                    }
+
+                if(stepper_1_Data.Stepper_Direction == 0){
+                    APP_Move_Up(&stepper_1_Data,stepper_1_Data.speed);
                 }
-                else{
-                    compteur_vitesse_stepper_1++; 
+                else if (stepper_1_Data.Stepper_Direction == 1){
+                    APP_Move_Down(&stepper_1_Data,stepper_1_Data.speed);
                 }
 
-                if(compteur_vitesse_stepper_2 >= stepper_2_Data.speed){
-                    compteur_vitesse_stepper_2 = 0;
-                    if(stepper_2_Data.Stepper_Direction == 0){
-                        APP_Move_Up(&stepper_2_Data,5);
-                    }
-                    else if (stepper_2_Data.Stepper_Direction == 1){
-                        APP_Move_Down(&stepper_2_Data,5);
-                    }
+                if(stepper_2_Data.Stepper_Direction == 0){
+                    APP_Move_Up(&stepper_2_Data,stepper_2_Data.speed);
                 }
-                else{
-                    compteur_vitesse_stepper_2 ++ ;
+                else if (stepper_2_Data.Stepper_Direction == 1){
+                    APP_Move_Down(&stepper_2_Data,stepper_2_Data.speed);
                 }
             }
+
             appData.state = APP_STATE_SERVICE_WAIT;
             break;
         }

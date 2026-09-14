@@ -7,6 +7,7 @@
 #include "app.h"
 #include "LM92.h"
 #include <stdio.h>
+#include "AD5620.h"
 
 MENU_STATES menu_state = MENU_DEFAULT;
 SETTING_STATES setting_state = SET_DEFAULT;
@@ -14,7 +15,7 @@ extern APP_DATA appData;
 
 extern STEPPER_DATA stepper_1_Data;
 extern STEPPER_DATA stepper_2_Data;
-
+extern SOUND_DATA Sound_Data;
 bool do_this_once;
 void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
     static float current_time_s = 0;
@@ -35,7 +36,19 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
             if( ptr_joystickData->Joystick_are_LR){
                 ptr_joystickData->Joystick_are_LR = false;
                 menu_state = MENU_SETTING;
+                
                 MAX7219_DisplayDigitChar(0,'S',0);
+                MAX7219_DisplayDigitChar(1,' ',0);
+                MAX7219_DisplayDigitChar(2,' ',0);
+                MAX7219_DisplayDigitChar(3,' ',0);
+                MAX7219_DisplayDigitChar(4,' ',0);
+                MAX7219_DisplayDigitChar(5,' ',0);
+                
+                Sound_Data.frequency_note_1 = 20;
+                Sound_Data.frequency_note_2 = 40;
+                Sound_Data.frequency_note_3 = 60;
+                Sound_Data.nb_note = 3;
+                Sound_Data.sound_for_a_tick = true;
 
             }   
             
@@ -45,6 +58,12 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
                 current_time_s = 0;
                 current_time_m = 0;
                 appData.in_game = true;
+                Sound_Data.frequency_note_1 = 392;
+                Sound_Data.frequency_note_2 = 440;
+                Sound_Data.frequency_note_3 = 493.88;
+                Sound_Data.frequency_note_3 = 523.25;
+                Sound_Data.nb_note = 4;
+                Sound_Data.sound_for_a_tick = true;
             }   
             
             break;
@@ -65,6 +84,12 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
                 current_time_s = 0;
                 current_time_m = 0;
                 appData.in_game = false;
+                Sound_Data.frequency_note_1 = 261.63;
+                Sound_Data.frequency_note_2 = 246.94;
+                Sound_Data.frequency_note_3 = 220;
+                Sound_Data.frequency_note_3 = 196;
+                Sound_Data.nb_note = 4;
+                Sound_Data.sound_for_a_tick = true;
             }   
             
 //            if(!Capteur_optiqueStateGet()){
@@ -119,6 +144,11 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
     char string_7seg[7];
     if( ptr_joystickData->Joystick_are_RR && modification_state == MOD_DEFAULT ){
         ptr_joystickData->Joystick_are_RR = false;
+        
+        Sound_Data.frequency_note_1 = 150;
+        Sound_Data.nb_note = 1;
+        Sound_Data.sound_for_a_tick = true;
+        
         if(setting_state == SYS_RECALIBRATION){
             setting_state = SET_DEFAULT;
         }
@@ -133,6 +163,11 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
     
     if( ptr_joystickData->Joystick_are_LL && modification_state == MOD_DEFAULT ){
         ptr_joystickData->Joystick_are_LL = false;
+        
+        Sound_Data.frequency_note_1 = 50;
+        Sound_Data.nb_note = 1;
+        Sound_Data.sound_for_a_tick = true;
+        
         if(setting_state == SET_DEFAULT){
             setting_state = SYS_RECALIBRATION;
         }
