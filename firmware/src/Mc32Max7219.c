@@ -21,8 +21,6 @@
 #include "Mc32Max7219.h"
 #include "Ges_Menu.h"
 
-extern SYS_INFO systeme_info;
-
 
 /* ==========================================================
  *  Table de correspondance position affichee -> registre digit
@@ -75,6 +73,11 @@ static const MAX7219_Font_t MAX7219_Font[] =
 };
 #define MAX7219_FONT_SIZE   (sizeof(MAX7219_Font) / sizeof(MAX7219_Font[0]))
 
+
+
+
+
+
 uint8_t MAX7219_CharToSeg(char c)
 {
     uint8_t i;
@@ -117,14 +120,12 @@ void MAX7219_WriteReg(uint8_t reg, uint8_t data)
 /* ==========================================================
  *  Initialisation
  * ========================================================== */
-void MAX7219_Init(void)
+void MAX7219_Init(SYS_INFO *ptr_systeme_info)
 {
 
-    
-    systeme_info.sys_brightness = 3;
 	MAX7219_WriteReg(0x0c, 0x01);       //  power down =0?normal mode = 1
     MAX7219_WriteReg(0x09, 0x00);       //  no decoding
-	MAX7219_WriteReg(0x0a, systeme_info.sys_brightness);       //  brightness intensity
+	MAX7219_WriteReg(0x0a, ptr_systeme_info->sys_brightness);       //  brightness intensity
 	MAX7219_WriteReg(0x0b, 0x05);       //  scan limit = 8 LEDs
 	MAX7219_WriteReg(0x0f, 0x00);       //  no test display
     

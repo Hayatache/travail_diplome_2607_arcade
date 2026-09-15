@@ -48,6 +48,7 @@ typedef enum
     MENU_GAME_IN_PROGRESS,
     MENU_GAME_WON,
     MENU_GAME_LOST,
+    MENU_END_GAME,
     MENU_GAME_STOPPED,
     MENU_SETTING
 	/* TODO: Define states used by the application state machine. */
@@ -99,7 +100,7 @@ typedef enum
       uint32_t last_time_score;
       SYS_TEMP sys_temp;
       uint8_t sys_brightness;
-      
+      uint32_t Magic;
   } SYS_INFO;
 
 

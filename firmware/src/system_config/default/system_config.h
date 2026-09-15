@@ -89,7 +89,7 @@ extern "C" {
    
 /*** Ports System Service Configuration ***/
 #define SYS_PORT_A_ANSEL        0xF860
-#define SYS_PORT_A_TRIS         0xF96E
+#define SYS_PORT_A_TRIS         0xFB7E
 #define SYS_PORT_A_LAT          0x0000
 #define SYS_PORT_A_ODC          0x0000
 #define SYS_PORT_A_CNPU         0x0000
@@ -262,20 +262,6 @@ extern "C" {
 #define CS_DacStateGet() PLIB_PORTS_PinGetLatched(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_1)
 #define CS_DacStateSet(Value) PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_1, Value)
 
-/*** Functions for Capteur_optique pin ***/
-#define Capteur_optiqueToggle() PLIB_PORTS_PinToggle(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_4)
-#define Capteur_optiqueOn() PLIB_PORTS_PinSet(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_4)
-#define Capteur_optiqueOff() PLIB_PORTS_PinClear(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_4)
-#define Capteur_optiqueStateGet() PLIB_PORTS_PinGetLatched(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_4)
-#define Capteur_optiqueStateSet(Value) PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_4, Value)
-
-/*** Functions for Capteur_bille pin ***/
-#define Capteur_billeToggle() PLIB_PORTS_PinToggle(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_9)
-#define Capteur_billeOn() PLIB_PORTS_PinSet(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_9)
-#define Capteur_billeOff() PLIB_PORTS_PinClear(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_9)
-#define Capteur_billeStateGet() PLIB_PORTS_PinGetLatched(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_9)
-#define Capteur_billeStateSet(Value) PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_9, Value)
-
 /*** Functions for Led_Test1 pin ***/
 #define Led_Test1Toggle() PLIB_PORTS_PinToggle(PORTS_ID_0, PORT_CHANNEL_C, PORTS_BIT_POS_3)
 #define Led_Test1On() PLIB_PORTS_PinSet(PORTS_ID_0, PORT_CHANNEL_C, PORTS_BIT_POS_3)
@@ -322,6 +308,9 @@ extern "C" {
 
 /*** Functions for Fin_de_course_1_TOP_ pin ***/
 #define Fin_de_course_1_TOP_StateGet() PLIB_PORTS_PinGet(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_4)
+
+/*** Functions for Capteur_bille pin ***/
+#define Capteur_billeStateGet() PLIB_PORTS_PinGet(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_9)
 
 
 /*** Application Instance 0 Configuration ***/

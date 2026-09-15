@@ -84,6 +84,7 @@ extern "C" {
     determine the behavior of the application at various times.
 */
 
+    
 typedef enum
 {
 	/* Application's state machine's initial state. */

@@ -16,7 +16,7 @@
 
 #include "Mc32gestI2cSeeprom.h"
 #include "Mc32_I2cUtilCCS.h"
-
+#include "Ges_Menu.h"
 
 
 
@@ -131,8 +131,22 @@ void I2C_ReadSEEPROM(void *DstData, uint32_t EEpromAddr, uint16_t NbBytes)
 
 } // end I2C_ReadSEEPROM
 
+SYS_INFO systeme_info_from_memory;
 
-
-
-
+void Check_If_Memory_exist(SYS_INFO *ptr_systeme_info){
+    I2C_ReadSEEPROM((uint32_t*)&systeme_info_from_memory,MCP79411_EEPROM_BEG, sizeof(systeme_info_from_memory));
+    if(systeme_info_from_memory.Magic == MAGIC){
+        *ptr_systeme_info = systeme_info_from_memory;
+        ptr_systeme_info->nbr_game_session = 0;
+        ptr_systeme_info->last_time_score = 0;
+    }
+    else{
+        ptr_systeme_info->Magic = MAGIC;
+        ptr_systeme_info->best_time_score = 0;
+        ptr_systeme_info->last_time_score = 0;
+        ptr_systeme_info->nbr_game_all_time = 0;
+        ptr_systeme_info->nbr_game_session = 0;
+        ptr_systeme_info->sys_brightness = 3;
+    }
+}
  

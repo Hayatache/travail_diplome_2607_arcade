@@ -8,6 +8,7 @@
 #include "LM92.h"
 #include <stdio.h>
 #include "AD5620.h"
+#include "Mc32gestI2cSeeprom.h"
 
 MENU_STATES menu_state = MENU_DEFAULT;
 SETTING_STATES setting_state = SET_DEFAULT;
@@ -16,11 +17,14 @@ extern APP_DATA appData;
 extern STEPPER_DATA stepper_1_Data;
 extern STEPPER_DATA stepper_2_Data;
 extern SOUND_DATA Sound_Data;
+SYS_INFO systeme_info;
 bool do_this_once;
 void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
     static float current_time_s = 0;
     static uint8_t current_time_m = 0;
     char string_7seg[7];
+    static bool blinking = false;
+    
     
     switch (menu_state)
     {
@@ -61,7 +65,7 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
                 Sound_Data.frequency_note_1 = 392;
                 Sound_Data.frequency_note_2 = 440;
                 Sound_Data.frequency_note_3 = 493.88;
-                Sound_Data.frequency_note_3 = 523.25;
+                Sound_Data.frequency_note_4 = 523.25;
                 Sound_Data.nb_note = 4;
                 Sound_Data.sound_for_a_tick = true;
             }   
@@ -87,27 +91,65 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
                 Sound_Data.frequency_note_1 = 261.63;
                 Sound_Data.frequency_note_2 = 246.94;
                 Sound_Data.frequency_note_3 = 220;
-                Sound_Data.frequency_note_3 = 196;
+                Sound_Data.frequency_note_4 = 196;
                 Sound_Data.nb_note = 4;
                 Sound_Data.sound_for_a_tick = true;
             }   
             
-//            if(!Capteur_optiqueStateGet()){
-//                menu_state = MENU_GAME_WON;
-//            }
-//            
-//            if(!Capteur_billeStateGet()){
-//                menu_state = MENU_GAME_LOST;
-//            }
+            
+            PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_A,PORTS_BIT_POS_10,true);
+            if(!Capteur_billeStateGet()){
+                menu_state = MENU_GAME_LOST;
+            }
             
             break;
 
         case MENU_GAME_WON:
-            // Victoire
+            Sound_Data.frequency_note_1 = 523.25;
+            Sound_Data.frequency_note_2 = 659.25;
+            Sound_Data.frequency_note_3 = 783.99;
+            Sound_Data.frequency_note_4 = 1046.5;
+            Sound_Data.nb_note = 4;
+            Sound_Data.sound_for_a_tick = true;
+            systeme_info.last_time_score = (60*current_time_m)+current_time_s;
+            if(systeme_info.last_time_score < systeme_info.best_time_score){
+                systeme_info.best_time_score = systeme_info.last_time_score;
+            }
+            menu_state = MENU_END_GAME;
             break;
 
         case MENU_GAME_LOST:
-            // D�faite
+            Sound_Data.frequency_note_1 = 65.406;
+            Sound_Data.frequency_note_2 = 41.203;
+            Sound_Data.nb_note = 2;
+            Sound_Data.sound_for_a_tick = true;
+            menu_state = MENU_END_GAME;
+            break;        
+        case MENU_END_GAME:
+            appData.in_game = false;
+
+            if(blinking){
+                blinking = false;
+                MAX7219_DisplayString("      ");
+            }
+            else if(!blinking){
+                blinking = true;
+                sprintf(string_7seg,"t%02d=%02d",current_time_m,(int)current_time_s);
+                MAX7219_DisplayString(string_7seg);
+            }
+
+            
+            if( ptr_joystickData->Joystick_are_LL){
+                ptr_joystickData->Joystick_are_LL = false;
+                APP_Move_To(&stepper_1_Data,1000);
+                APP_Move_To(&stepper_2_Data,1000);
+                menu_state = MENU_DEFAULT;
+                systeme_info.nbr_game_session++;
+                systeme_info.nbr_game_all_time++;
+                I2C_WriteSEEPROM((uint32_t*)&systeme_info,MCP79411_EEPROM_BEG, sizeof(systeme_info));
+                PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_A,PORTS_BIT_POS_7,true);
+            }  
+            
             break;
 
         case MENU_GAME_STOPPED:
@@ -115,7 +157,8 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
             APP_Stepper_Stop(&stepper_1_Data);
             APP_Stepper_Stop(&stepper_2_Data);
             APP_Move_To(&stepper_1_Data,2500);
-            APP_Move_To(&stepper_2_Data,5000);
+            APP_Move_To(&stepper_2_Data,1000);
+            menu_state = MENU_END_GAME;
             break;
 
         case MENU_SETTING:
@@ -134,7 +177,6 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
 static MODIFICATION_STATES modification_state = MOD_DEFAULT;
 bool menu_plus = false;
 bool menu_minus = false;
-SYS_INFO systeme_info;
 uint8_t value;
 
 
@@ -184,6 +226,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
         ptr_joystickData->Joystick_are_LR = false;
         if(modification_state == MOD_DEFAULT){
             menu_state = MENU_DEFAULT;
+            I2C_WriteSEEPROM((uint32_t*)&systeme_info,MCP79411_EEPROM_BEG, sizeof(systeme_info));
         }
         else{
             modification_state = MOD_DEFAULT;
@@ -204,22 +247,12 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
         case SET_BRIGHTNESS:
             switch(modification_state){
                 case MOD_DEFAULT : 
-                switch(modification_state){
-                case MOD_DEFAULT : 
                     MAX7219_DisplayDigitChar(0,' ',0);
-                    MAX7219_DisplayDigitChar(1,'d',0);
-                    MAX7219_DisplayDigitChar(2,' ',0);
+                    MAX7219_DisplayDigitChar(1,'b',0);
+                    MAX7219_DisplayDigitChar(2,'r',0);
                     MAX7219_DisplayDigitChar(3,' ',0);
                     MAX7219_DisplayDigitChar(4,' ',0);
                     MAX7219_DisplayDigitChar(5,' ',0);
-                    break;
-                case MOD_ENTERING_SETTING :
-                    sprintf(string_7seg,"  no  ");
-                    MAX7219_DisplayString(string_7seg);
-                    break;
-                case MOD_EXITING_SETTING : 
-                    break;
-            }
                     break;
                 case MOD_ENTERING_SETTING :
                     value = systeme_info.sys_brightness & 0x0F;
@@ -257,6 +290,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
             break;
         case SET_TIME:
             MAX7219_DisplayDigitChar(2,'t',1);
+            MAX7219_DisplayDigitChar(3,' ',0);
             break;
 
         case SEE_TIME:
@@ -331,7 +365,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                     MAX7219_DisplayDigitChar(5,' ',0);
                     break;
                 case MOD_ENTERING_SETTING :
-                    sprintf(string_7seg,"%06d", systeme_info.best_time_score);
+                    sprintf(string_7seg,"%03d=%02d",(int)systeme_info.best_time_score/60,(int)systeme_info.best_time_score%60);
                     MAX7219_DisplayString(string_7seg);
                     break;
                 case MOD_EXITING_SETTING : 
@@ -349,7 +383,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                     MAX7219_DisplayDigitChar(5,' ',0);
                     break;
                 case MOD_ENTERING_SETTING :
-                    sprintf(string_7seg,"%06d", systeme_info.last_time_score);
+                    sprintf(string_7seg,"%03d=%02d",(int)systeme_info.last_time_score/60,(int)systeme_info.last_time_score%60);
                     MAX7219_DisplayString(string_7seg);
                     break;
                 case MOD_EXITING_SETTING : 

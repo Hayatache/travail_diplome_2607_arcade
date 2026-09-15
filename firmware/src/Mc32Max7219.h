@@ -14,6 +14,7 @@
 /*--------------------------------------------------------*/
 
 #include <stdint.h>
+#include "Ges_Menu.h"
 
 /* ==========================================================
  *  CONFIGURATION MATERIELLE - A ADAPTER AU PROJET
@@ -66,7 +67,7 @@
 
 // Initialise le MAX7219 (mode no-decode, scan-limit, intensite,
 // efface l'ecran, sort du shutdown)
-void MAX7219_Init(void);
+void MAX7219_Init(SYS_INFO *ptr_systeme_info);
 
 // Ecrit un octet "data" dans le registre "reg" (gere LOAD/CS + SPI)
 void MAX7219_WriteReg(uint8_t reg, uint8_t data);
