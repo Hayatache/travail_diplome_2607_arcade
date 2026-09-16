@@ -60,4 +60,8 @@ void APP_Stepper_Stop(STEPPER_DATA *pStepperData);
 
 void APP_Ges_stepper(STEPPER_DATA *pStepperData);
 
+
+float   APP_Stepper_GetTiltAngleDeg(void);
+bool    APP_Stepper_TiltLimitBlocked(int32_t stepperId);
+int32_t APP_Stepper_GetMaxDeltaSteps(void);
 #endif /* STEPPER_H */

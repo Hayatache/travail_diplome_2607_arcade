@@ -306,6 +306,7 @@ void APP_Tasks ( void )
             appData.state = APP_STATE_SERVICE_WAIT;
             appData.in_game = false;
             MAX7219_DisplayString("cALiBr");
+            PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_A,PORTS_BIT_POS_0, false);
             PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_C,PORTS_BIT_POS_4, true);
             
             break;

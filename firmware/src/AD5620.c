@@ -101,10 +101,9 @@ void Play_Sound_1_Tick(SOUND_DATA *ptr_Sound_data)
     /* Gestion du son pendant un tick */
     if(ptr_Sound_data->sound_for_a_tick)
     {
-        PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_C,PORTS_BIT_POS_4,false
-        );
-
+        PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_C,PORTS_BIT_POS_4,false);
         ptr_Sound_data->sound_for_a_tick = false;
+        current_note = 1;
     }
     else
     {
