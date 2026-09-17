@@ -104,6 +104,7 @@ void SYS_PORTS_Initialize(void)
 
     /* PPS Input Remapping */
     PLIB_PORTS_RemapInput(PORTS_ID_0, INPUT_FUNC_INT2, INPUT_PIN_RPA4 );
+    PLIB_PORTS_RemapInput(PORTS_ID_0, INPUT_FUNC_INT3, INPUT_PIN_RPA9 );
 
     /* PPS Output Remapping */
     PLIB_PORTS_RemapOutput(PORTS_ID_0, OUTPUT_FUNC_SDO2, OUTPUT_PIN_RPA1 );

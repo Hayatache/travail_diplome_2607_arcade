@@ -309,9 +309,6 @@ extern "C" {
 /*** Functions for Fin_de_course_1_TOP_ pin ***/
 #define Fin_de_course_1_TOP_StateGet() PLIB_PORTS_PinGet(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_4)
 
-/*** Functions for Capteur_bille pin ***/
-#define Capteur_billeStateGet() PLIB_PORTS_PinGet(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_9)
-
 
 /*** Application Instance 0 Configuration ***/
 
