@@ -18,7 +18,7 @@ extern STEPPER_DATA stepper_1_Data;
 extern STEPPER_DATA stepper_2_Data;
 extern SOUND_DATA Sound_Data;
 SYS_INFO systeme_info;
-bool do_this_once;
+
 void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
     static float current_time_s = 0;
     static uint8_t current_time_m = 0;
@@ -36,17 +36,13 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
             // Menu principal
             MAX7219_DisplayString("StArt");
             PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_C, PORTS_BIT_POS_3,true); 
-            do_this_once = true;
+
             if( ptr_joystickData->Joystick_are_LR){
                 ptr_joystickData->Joystick_are_LR = false;
                 menu_state = MENU_SETTING;
                 
-                MAX7219_DisplayDigitChar(0,'S',0);
-                MAX7219_DisplayDigitChar(1,' ',0);
-                MAX7219_DisplayDigitChar(2,' ',0);
-                MAX7219_DisplayDigitChar(3,' ',0);
-                MAX7219_DisplayDigitChar(4,' ',0);
-                MAX7219_DisplayDigitChar(5,' ',0);
+                /* affiche les informations relative au menu dans le quel on se trouve*/
+                MAX7219_DisplayString("S     ");
                 
                 Sound_Data.frequency_note_1 = 20;
                 Sound_Data.frequency_note_2 = 40;
@@ -58,10 +54,14 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
             
             if( ptr_joystickData->Joystick_are_RR){
                 ptr_joystickData->Joystick_are_RR = false;
+
                 menu_state = MENU_GAME_IN_PROGRESS;
+                PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_A,PORTS_BIT_POS_0,true);
+
                 current_time_s = 0;
                 current_time_m = 0;
                 appData.in_game = true;
+
                 Sound_Data.frequency_note_1 = 392;
                 Sound_Data.frequency_note_2 = 440;
                 Sound_Data.frequency_note_3 = 493.88;
@@ -78,16 +78,25 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
                 current_time_m ++;
                 current_time_s = 0;
             }
-            sprintf(string_7seg,"t%02d=%02d",current_time_m,(int)current_time_s);
+
+            if(current_time_s >= 1){
+                PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_A,PORTS_BIT_POS_0,false);
+            }
+
             
+            /* affiche les informations relative au menu dans le quel on se trouve*/
+            sprintf(string_7seg,"t%02d=%02d",current_time_m,(int)current_time_s);
             MAX7219_DisplayString(string_7seg);
             
             if( ptr_joystickData->Joystick_are_LL){
                 ptr_joystickData->Joystick_are_LL = false;
+
                 menu_state = MENU_GAME_STOPPED;
+
                 current_time_s = 0;
                 current_time_m = 0;
                 appData.in_game = false;
+
                 Sound_Data.frequency_note_1 = 261.63;
                 Sound_Data.frequency_note_2 = 246.94;
                 Sound_Data.frequency_note_3 = 220;
@@ -98,31 +107,34 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
             
             
             PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_A,PORTS_BIT_POS_10,true);
-            if(!Capteur_billeStateGet()){
-                menu_state = MENU_GAME_LOST;
-            }
             
             break;
 
         case MENU_GAME_WON:
+
             Sound_Data.frequency_note_1 = 523.25;
             Sound_Data.frequency_note_2 = 659.25;
             Sound_Data.frequency_note_3 = 783.99;
             Sound_Data.frequency_note_4 = 1046.5;
             Sound_Data.nb_note = 4;
             Sound_Data.sound_for_a_tick = true;
+
             systeme_info.last_time_score = (60*current_time_m)+current_time_s;
+
             if(systeme_info.last_time_score < systeme_info.best_time_score){
                 systeme_info.best_time_score = systeme_info.last_time_score;
             }
+
             menu_state = MENU_END_GAME;
             break;
 
         case MENU_GAME_LOST:
+
             Sound_Data.frequency_note_1 = 65.406;
             Sound_Data.frequency_note_2 = 41.203;
             Sound_Data.nb_note = 2;
             Sound_Data.sound_for_a_tick = true;
+            
             menu_state = MENU_END_GAME;
             break;        
         case MENU_END_GAME:
@@ -130,10 +142,12 @@ void Gestion_Menu(JOYSTICK_DATA *ptr_joystickData){
 
             if(blinking){
                 blinking = false;
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                 MAX7219_DisplayString("      ");
             }
             else if(!blinking){
                 blinking = true;
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                 sprintf(string_7seg,"t%02d=%02d",current_time_m,(int)current_time_s);
                 MAX7219_DisplayString(string_7seg);
             }
@@ -241,12 +255,14 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
     switch (setting_state)
     {
         case SET_DEFAULT:
+        /* affiche les informations relative au menu dans le quel on se trouve*/
             MAX7219_DisplayDigitChar(2,'d',0);
             break;
 
         case SET_BRIGHTNESS:
             switch(modification_state){
                 case MOD_DEFAULT : 
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     MAX7219_DisplayDigitChar(0,' ',0);
                     MAX7219_DisplayDigitChar(1,'b',0);
                     MAX7219_DisplayDigitChar(2,'r',0);
@@ -257,6 +273,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                 case MOD_ENTERING_SETTING :
                     value = systeme_info.sys_brightness & 0x0F;
 
+                    /* affiche les informations relative au menu dans le quel on se trouve*/
                     MAX7219_DisplayDigitChar(5,
                          (value < 10) ? ('0' + value) : ('A' + value - 10),
                          1);
@@ -289,11 +306,13 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
             }
             break;
         case SET_TIME:
+        /* affiche les informations relative au menu dans le quel on se trouve*/
             MAX7219_DisplayDigitChar(2,'t',1);
             MAX7219_DisplayDigitChar(3,' ',0);
             break;
 
         case SEE_TIME:
+        /* affiche les informations relative au menu dans le quel on se trouve*/
             MAX7219_DisplayDigitChar(2,'t',0);
             MAX7219_DisplayDigitChar(3,' ',0);
             break;
@@ -301,6 +320,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
         case SEE_NBR_PLAYED_GAME_SESSION:
             switch(modification_state){
                 case MOD_DEFAULT : 
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     MAX7219_DisplayDigitChar(0,' ',0);
                     MAX7219_DisplayDigitChar(1,'S',0);
                     MAX7219_DisplayDigitChar(2,'G',0);
@@ -309,6 +329,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                     MAX7219_DisplayDigitChar(5,' ',0);
                     break;
                 case MOD_ENTERING_SETTING :
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     sprintf(string_7seg,"%06d", systeme_info.nbr_game_session);
                     MAX7219_DisplayString(string_7seg);
                     break;
@@ -320,6 +341,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
         case SEE_NBR_PLAYED_GAME_ALL_TIME:
             switch(modification_state){
                 case MOD_DEFAULT : 
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     MAX7219_DisplayDigitChar(0,' ',0);
                     MAX7219_DisplayDigitChar(1,'S',0);
                     MAX7219_DisplayDigitChar(2,'G',0);
@@ -328,6 +350,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                     MAX7219_DisplayDigitChar(5,' ',0);
                     break;
                 case MOD_ENTERING_SETTING :
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     sprintf(string_7seg,"%06d", systeme_info.nbr_game_all_time);
                     MAX7219_DisplayString(string_7seg);
                     break;
@@ -339,6 +362,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
         case SEE_SYS_TEMP:
             switch(modification_state){
                 case MOD_DEFAULT : 
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     MAX7219_DisplayDigitChar(0,' ',0);
                     MAX7219_DisplayDigitChar(1,' ',0);
                     MAX7219_DisplayDigitChar(2,'t',0);
@@ -347,6 +371,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                     MAX7219_DisplayDigitChar(5,' ',0);
                     break;
                 case MOD_ENTERING_SETTING :
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     sprintf(string_7seg,"  %03.2f", LM92_GetTemperature());
                     MAX7219_DisplayString(string_7seg);
                     break;
@@ -357,6 +382,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
         case SEE_ALL_TIME_BEST_SCORE:
             switch(modification_state){
                 case MOD_DEFAULT : 
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     MAX7219_DisplayDigitChar(0,' ',0);
                     MAX7219_DisplayDigitChar(1,'S',0);
                     MAX7219_DisplayDigitChar(2,'b',0);
@@ -365,6 +391,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                     MAX7219_DisplayDigitChar(5,' ',0);
                     break;
                 case MOD_ENTERING_SETTING :
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     sprintf(string_7seg,"%03d=%02d",(int)systeme_info.best_time_score/60,(int)systeme_info.best_time_score%60);
                     MAX7219_DisplayString(string_7seg);
                     break;
@@ -375,6 +402,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
         case SEE_LAST_SCORE:
             switch(modification_state){
                 case MOD_DEFAULT : 
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     MAX7219_DisplayDigitChar(0,' ',0);
                     MAX7219_DisplayDigitChar(1,'S',0);
                     MAX7219_DisplayDigitChar(2,'L',0);
@@ -383,6 +411,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
                     MAX7219_DisplayDigitChar(5,' ',0);
                     break;
                 case MOD_ENTERING_SETTING :
+                /* affiche les informations relative au menu dans le quel on se trouve*/
                     sprintf(string_7seg,"%03d=%02d",(int)systeme_info.last_time_score/60,(int)systeme_info.last_time_score%60);
                     MAX7219_DisplayString(string_7seg);
                     break;
@@ -392,6 +421,7 @@ void Gestion_Menu_Setting(JOYSTICK_DATA *ptr_joystickData){
             break;
 
         case SYS_RECALIBRATION:
+        /* affiche les informations relative au menu dans le quel on se trouve*/
             MAX7219_DisplayDigitChar(0,' ',0);
             MAX7219_DisplayDigitChar(1,' ',0);
             MAX7219_DisplayDigitChar(2,'C',0);

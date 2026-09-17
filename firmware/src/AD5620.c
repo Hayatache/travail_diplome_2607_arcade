@@ -8,32 +8,58 @@
 #include "peripheral/tmr/plib_tmr.h"
 
 
-// Ecrit un code 12 bits + mode dans le registre du DAC
+//----------------------------------------------------------------------------------//
+//-- nom fct : dac_ad5620_write
+//-- paramètre entrée : uint16_t mode_bits, uint16_t code12
+//-- paramètre sortie : aucune
+//-- description : construit et envoie un mot de 16 bits au DAC AD5620 via SPI
+//----------------------------------------------------------------------------------//
 void dac_ad5620_write(uint16_t mode_bits, uint16_t code12)
 {
-    uint16_t word = mode_bits | ((code12 & 0x0FFFu) << 2);  // bits 1-0 = don't care, mis � 0
+    uint16_t word = mode_bits | ((code12 & 0x0FFFu) << 2);  // construit le mot  16 bits a envoyer au DAC
+    /*separe le mot en deux octets */
     uint8_t  msb  = (uint8_t)(word >> 8);
     uint8_t  lsb  = (uint8_t)(word & 0xFF);
 
+    /* met la CS a 1 au cas ou il aurait été descendu precedement */
     PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_1,true);
+    /* gestion du CS */
     PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_1,false);
+    /*envoie des deux octets au dac */
     spi_write1(msb);         // D15..D8 (MSB en premier)
     spi_write1(lsb);         // D7..D0
+    /* suite de la gestion du dac */
     PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_1,true);
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : dac_ad5620_set_min
+//-- paramètre entrée : aucun
+//-- paramètre sortie : aucune
+//-- description : configure la sortie du DAC à sa valeur minimale
+//----------------------------------------------------------------------------------//
 void dac_ad5620_set_min(void)
 {
     dac_ad5620_write(AD5620_MODE_NORMAL, AD5620_CODE_MIN);
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : dac_ad5620_set_max
+//-- paramètre entrée : aucun
+//-- paramètre sortie : aucune
+//-- description : configure la sortie du DAC à sa valeur maximale
+//----------------------------------------------------------------------------------//
 void dac_ad5620_set_max(void)
 {
     dac_ad5620_write(AD5620_MODE_NORMAL, AD5620_CODE_MAX);
 }
 
-// G�n�re une impulsion min <-> max en boucle
-// half_period_us : demi-p�riode en �s (voir contrainte plus bas)
+//----------------------------------------------------------------------------------//
+//-- nom fct : dac_ad5620_generate_pulse
+//-- paramètre entrée : aucun
+//-- paramètre sortie : aucune
+//-- description : alterne entre la valeur minimale et maximale du DAC
+//----------------------------------------------------------------------------------//
 void dac_ad5620_generate_pulse()
 {
     static bool minormax = true;
@@ -49,6 +75,12 @@ void dac_ad5620_generate_pulse()
 
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : Audio_SetFrequency
+//-- paramètre entrée : float frequency
+//-- paramètre sortie : aucune
+//-- description : configure la période du Timer 3 pour générer la fréquence audio demandée
+//----------------------------------------------------------------------------------//
 void Audio_SetFrequency(float frequency)
 {
     unsigned int timer_value;
@@ -63,11 +95,17 @@ void Audio_SetFrequency(float frequency)
      PLIB_TMR_Period16BitSet(TMR_ID_3,timer_value);
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : Play_Sound_1_Tick
+//-- paramètre entrée : SOUND_DATA *ptr_Sound_data
+//-- paramètre sortie : aucune
+//-- description : joue les différentes notes du son et gère leur enchaînement
+//----------------------------------------------------------------------------------//
 void Play_Sound_1_Tick(SOUND_DATA *ptr_Sound_data)
 {
+    /* variable pour memorisé la note actuelle a jouer*/
     static uint8_t current_note = 1;
 
-    /* Limitation du nombre de notes */
     if(ptr_Sound_data->nb_note > 4)
     {
         ptr_Sound_data->nb_note = 4;
@@ -78,7 +116,7 @@ void Play_Sound_1_Tick(SOUND_DATA *ptr_Sound_data)
         ptr_Sound_data->nb_note = 1;
     }
 
-    /* Jouer la note actuelle */
+    /* selectionne la frequence de la note parametrer au prealable*/
     switch(current_note)
     {
         case 1:
@@ -98,7 +136,6 @@ void Play_Sound_1_Tick(SOUND_DATA *ptr_Sound_data)
             break;
     }
 
-    /* Gestion du son pendant un tick */
     if(ptr_Sound_data->sound_for_a_tick)
     {
         PLIB_PORTS_PinWrite(PORTS_ID_0,PORT_CHANNEL_C,PORTS_BIT_POS_4,false);
@@ -107,10 +144,7 @@ void Play_Sound_1_Tick(SOUND_DATA *ptr_Sound_data)
     }
     else
     {
-        /* Passer � la note suivante */
-        
 
-        /* Recommencer � la note 1 */
         if(current_note > ptr_Sound_data->nb_note)
         {
             current_note = 1;

@@ -22,12 +22,11 @@
 #include "Ges_Menu.h"
 
 
-/* ==========================================================
- *  Table de correspondance position affichee -> registre digit
- * ========================================================== */
-// position 0 = digit le plus a GAUCHE de l'afficheur
-// position (MAX7219_NB_DIGITS-1) = digit le plus a DROITE
-// -> a inverser si le cablage physique de la carte est different
+//----------------------------------------------------------------------------------//
+//-- Table de correspondance entre la position d'affichage et le registre du MAX7219
+//-- position 0                  : digit le plus à gauche
+//-- position MAX7219_NB_DIGITS-1 : digit le plus à droite
+//----------------------------------------------------------------------------------//
 static const uint8_t MAX7219_DigitRegTable[8] =
 {
     MAX7219_REG_DIGIT0, MAX7219_REG_DIGIT1, MAX7219_REG_DIGIT2,
@@ -35,24 +34,33 @@ static const uint8_t MAX7219_DigitRegTable[8] =
     MAX7219_REG_DIGIT6, MAX7219_REG_DIGIT7
 };
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_PosToReg
+//-- paramètre entrée : uint8_t position
+//-- paramètre sortie : uint8_t registre
+//-- description : convertit la position d'affichage en registre du MAX7219
+//----------------------------------------------------------------------------------//
 static uint8_t MAX7219_PosToReg(uint8_t position)
 {
     return MAX7219_DigitRegTable[(MAX7219_NB_DIGITS - 1) - position];
 }
 
 
-/* ==========================================================
- *  Table de police 7-segments (mode no-decode)
- *  Format d'un octet segment : DP A B C D E F G  (Table 6 datasheet)
- *  Certaines lettres (K,M,Q,V,W,X) sont difficilement
- *  representables sur 7 segments : approximation "au mieux".
- * ========================================================== */
+//----------------------------------------------------------------------------------//
+//-- Table de correspondance des caractères avec les segments du digit
+//-- Format : DP A B C D E F G
+//-- Utilisée lorsque le MAX7219 est configuré en mode "no-decode"
+//----------------------------------------------------------------------------------//
 typedef struct
 {
     char    car;
     uint8_t seg;
 } MAX7219_Font_t;
 
+//----------------------------------------------------------------------------------//
+//-- Table des caractères disponibles sur l'afficheur 7 segments
+//-- Les caractères ne pouvant pas être représentés exactement sont approximés
+//----------------------------------------------------------------------------------//
 static const MAX7219_Font_t MAX7219_Font[] =
 {
     {'0', 0x7E}, {'1', 0x30}, {'2', 0x6D}, {'3', 0x79},
@@ -74,10 +82,12 @@ static const MAX7219_Font_t MAX7219_Font[] =
 #define MAX7219_FONT_SIZE   (sizeof(MAX7219_Font) / sizeof(MAX7219_Font[0]))
 
 
-
-
-
-
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_CharToSeg
+//-- paramètre entrée : char c
+//-- paramètre sortie : uint8_t segments
+//-- description : convertit un caractère en code correspondant aux segments
+//----------------------------------------------------------------------------------//
 uint8_t MAX7219_CharToSeg(char c)
 {
     uint8_t i;
@@ -92,9 +102,12 @@ uint8_t MAX7219_CharToSeg(char c)
 }
 
 
-/* ==========================================================
- *  Ecriture bas niveau d'un registre (LOAD/CS + trame SPI 16 bits)
- * ========================================================== */
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_WriteReg
+//-- paramètre entrée : uint8_t reg, uint8_t data
+//-- paramètre sortie : aucune
+//-- description : écrit une donnée dans un registre du MAX7219 via SPI
+//----------------------------------------------------------------------------------//
 void MAX7219_WriteReg(uint8_t reg, uint8_t data)
 {
     
@@ -113,13 +126,15 @@ void MAX7219_WriteReg(uint8_t reg, uint8_t data)
     delay_usCt(2);
     PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_0,false); 
     
-   
 }
 
 
-/* ==========================================================
- *  Initialisation
- * ========================================================== */
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_Init
+//-- paramètre entrée : SYS_INFO *ptr_systeme_info
+//-- paramètre sortie : aucune
+//-- description : initialise le MAX7219 avec les paramètres du système
+//----------------------------------------------------------------------------------//
 void MAX7219_Init(SYS_INFO *ptr_systeme_info)
 {
 
@@ -132,13 +147,24 @@ void MAX7219_Init(SYS_INFO *ptr_systeme_info)
     MAX7219_Clear();
 }
 
-
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_Init
+//-- paramètre entrée : SYS_INFO *ptr_systeme_info
+//-- paramètre sortie : aucune
+//-- description : initialise le MAX7219 avec les paramètres du système
+//----------------------------------------------------------------------------------//
 void MAX7219_Shutdown(uint8_t on)
 {
     // Table 3 : D0 = 0 -> shutdown, D0 = 1 -> fonctionnement normal
     MAX7219_WriteReg(MAX7219_REG_SHUTDOWN, on);
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_SetIntensity
+//-- paramètre entrée : uint8_t intensity
+//-- paramètre sortie : aucune
+//-- description : règle la luminosité de l'afficheur
+//----------------------------------------------------------------------------------//
 void MAX7219_SetIntensity(uint8_t intensity)
 {
     if (intensity > 0x0F)
@@ -148,6 +174,12 @@ void MAX7219_SetIntensity(uint8_t intensity)
     MAX7219_WriteReg(MAX7219_REG_INTENSITY, intensity);
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_Clear
+//-- paramètre entrée : aucun
+//-- paramètre sortie : aucune
+//-- description : efface tous les digits de l'afficheur
+//----------------------------------------------------------------------------------//
 void MAX7219_Clear(void)
 {
     uint8_t i;
@@ -158,9 +190,12 @@ void MAX7219_Clear(void)
 }
 
 
-/* ==========================================================
- *  Affichage caractere / chaine / nombre
- * ========================================================== */
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_DisplayDigitChar
+//-- paramètre entrée : uint8_t position, char c, uint8_t dp
+//-- paramètre sortie : aucune
+//-- description : affiche un caractère à une position donnée
+//----------------------------------------------------------------------------------//
 void MAX7219_DisplayDigitChar(uint8_t position, char c, uint8_t dp)
 {
     uint8_t seg;
@@ -180,6 +215,12 @@ void MAX7219_DisplayDigitChar(uint8_t position, char c, uint8_t dp)
 
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : MAX7219_DisplayString
+//-- paramètre entrée : const char *str
+//-- paramètre sortie : aucune
+//-- description : affiche une chaîne de caractères sur l'afficheur
+//----------------------------------------------------------------------------------//
 void MAX7219_DisplayString(const char *str)
 {
     uint8_t position = 0;
@@ -210,60 +251,4 @@ void MAX7219_DisplayString(const char *str)
     }
 }
 
-void MAX7219_DisplayInt(int32_t value)
-{
-    char buf[MAX7219_NB_DIGITS + 2];
 
-    snprintf(buf, sizeof(buf), "%*ld", (int)MAX7219_NB_DIGITS, (long)value);
-    MAX7219_DisplayString(buf);
-}
-
-
-/* ==========================================================
- *  Defilement de texte
- * ========================================================== */
-void MAX7219_Scroll(const char *str, uint16_t delay_ms)
-{
-    char     padded[MAX7219_SCROLL_BUFFER_LEN];
-    char     window[MAX7219_NB_DIGITS + 1];
-    uint16_t len;
-    uint16_t max_len;
-    uint16_t total_len;
-    uint16_t i, p;
-
-    max_len = MAX7219_SCROLL_BUFFER_LEN - (2 * MAX7219_NB_DIGITS) - 1;
-
-    len = (uint16_t)strlen(str);
-    if (len > max_len)
-    {
-        len = max_len;
-    }
-
-    // Chaine paddee : N espaces (entree) + texte + N espaces (sortie)
-    for (i = 0; i < MAX7219_NB_DIGITS; i++)
-    {
-        padded[i] = ' ';
-    }
-    for (i = 0; i < len; i++)
-    {
-        padded[MAX7219_NB_DIGITS + i] = str[i];
-    }
-    for (i = 0; i < MAX7219_NB_DIGITS; i++)
-    {
-        padded[MAX7219_NB_DIGITS + len + i] = ' ';
-    }
-    total_len = len + (2 * MAX7219_NB_DIGITS);
-    padded[total_len] = '\0';
-
-    // Fait glisser une fenetre de MAX7219_NB_DIGITS caracteres
-    for (p = 0; p <= (total_len - MAX7219_NB_DIGITS); p++)
-    {
-        for (i = 0; i < MAX7219_NB_DIGITS; i++)
-        {
-            window[i] = padded[p + i];
-        }
-        window[MAX7219_NB_DIGITS] = '\0';
-
-        MAX7219_DisplayString(window);
-    }
-}

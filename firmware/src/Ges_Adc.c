@@ -5,6 +5,14 @@
 #include <stdbool.h>
 #define HYSTERESIS_JOYSTICK  20
 
+
+//----------------------------------------------------------------------------------//
+//-- nom fct : ADC_TO_SPEED
+//-- paramÃ¨tre entrÃ©e : STEPPER_DATA *ptr_stepperData, uint16_t adc,
+//--                     uint16_t *ptr_ADC_Mid_point
+//-- paramÃ¨tre sortie : aucune
+//-- description : convertit la position du joystick en direction et vitesse moteur
+//----------------------------------------------------------------------------------//
 void ADC_TO_SPEED(STEPPER_DATA *ptr_stepperData,
                   uint16_t adc,
                   uint16_t *ptr_ADC_Mid_point)
@@ -30,7 +38,7 @@ void ADC_TO_SPEED(STEPPER_DATA *ptr_stepperData,
 
     if (ptr_stepperData->Stepper_Direction == 1)
     {
-        /* Le moteur est déjà en mouvement vers le haut */
+        /* Le moteur est dï¿½jï¿½ en mouvement vers le haut */
 
         if (adc <= upper_stop)
         {
@@ -61,7 +69,7 @@ void ADC_TO_SPEED(STEPPER_DATA *ptr_stepperData,
 
     else if (ptr_stepperData->Stepper_Direction == 0)
     {
-        /* Le moteur est déjà en mouvement vers le bas */
+        /* Le moteur est deja en mouvement vers le bas */
 
         if (adc >= lower_stop)
         {
@@ -87,19 +95,19 @@ void ADC_TO_SPEED(STEPPER_DATA *ptr_stepperData,
 
 
     /* ========================= */
-    /* Moteur à l'arrêt          */
+    /* Moteur a l'arret          */
     /* ========================= */
 
     else
     {
         if (adc > upper_start)
         {
-            /* Démarrage vers le haut */
+            /* Demarrage vers le haut */
             ptr_stepperData->Stepper_Direction = 1;
         }
         else if (adc < lower_start)
         {
-            /* Démarrage vers le bas */
+            /* Demarrage vers le bas */
             ptr_stepperData->Stepper_Direction = 0;
         }
         else
@@ -110,6 +118,13 @@ void ADC_TO_SPEED(STEPPER_DATA *ptr_stepperData,
         }
     }
 }
+
+//----------------------------------------------------------------------------------//
+//-- nom fct : ADC_TO_DIG
+//-- paramÃ¨tre entrÃ©e : uint16_t adc, uint16_t *ADC_Mid_point
+//-- paramÃ¨tre sortie : uint8_t direction
+//-- description : dÃ©termine la direction du joystick Ã  partir de la valeur ADC
+//----------------------------------------------------------------------------------//
 uint8_t ADC_TO_DIG(uint16_t adc , uint16_t ADC_Mid_point){
 
     if (adc > ADC_Mid_point + DEAD_ZONE_JOYSTICK)
@@ -129,6 +144,14 @@ uint8_t ADC_TO_DIG(uint16_t adc , uint16_t ADC_Mid_point){
     }
 }
 
+//----------------------------------------------------------------------------------//
+//-- nom fct : Scan_X_AXIS
+//-- paramÃ¨tre entrÃ©e : JOYSTICK_DATA *ptr_joystickData,
+//--                     uint16_t adc1, uint16_t *ADC_Mid_point1,
+//--                     uint16_t adc2, uint16_t *ADC_Mid_point2
+//-- paramÃ¨tre sortie : aucune
+//-- description : dÃ©tecte les combinaisons de dÃ©placement des deux joysticks
+//----------------------------------------------------------------------------------//
 void Scan_X_AXIS(JOYSTICK_DATA *ptr_joystickData, uint16_t adc1 , uint16_t ADC_Mid_point1, uint16_t adc2 , uint16_t ADC_Mid_point2){
     static uint8_t ctr_joystick1 = 0;
     static uint8_t ctr_joystick2 = 0; 

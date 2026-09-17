@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define STEPPER_SAFETY_MARGIN       150
-#define STEPPER_CALIB_SEARCH_STEPS  1  /* > course reelle max, a ajuster */
+#define STEPPER_CALIB_SEARCH_STEPS  1 
 
 typedef enum
 {

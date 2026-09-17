@@ -134,13 +134,18 @@ void I2C_ReadSEEPROM(void *DstData, uint32_t EEpromAddr, uint16_t NbBytes)
 SYS_INFO systeme_info_from_memory;
 
 void Check_If_Memory_exist(SYS_INFO *ptr_systeme_info){
+    /*lis la memoire de l'eeprom et la met dans une structure tempons*/
     I2C_ReadSEEPROM((uint32_t*)&systeme_info_from_memory,MCP79411_EEPROM_BEG, sizeof(systeme_info_from_memory));
+    /* dans le cas ou la variable magic est dans la memoire, cela veut dire qu'une information a été sauvegarder */
     if(systeme_info_from_memory.Magic == MAGIC){
+        /* recuperation de toutes les informations */
         *ptr_systeme_info = systeme_info_from_memory;
+        /* reset de variable relative a la session */
         ptr_systeme_info->nbr_game_session = 0;
         ptr_systeme_info->last_time_score = 0;
     }
     else{
+        /*si la valeur n'as pas été sauvegarder, met des valeurs de base dans toutes les variables de la structure*/
         ptr_systeme_info->Magic = MAGIC;
         ptr_systeme_info->best_time_score = 0;
         ptr_systeme_info->last_time_score = 0;
