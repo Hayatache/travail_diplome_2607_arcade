@@ -140,6 +140,15 @@ void APP_Initialize ( void )
 
 uint32_t ctr_calibration= 0;
 
+
+//----------------------------------------------------------------------------------//
+//-- nom fct : Stepper_RunCalibration
+//-- paramètre entrée : STEPPER_DATA *stepperData,
+//--                    bool btmPressed, bool topPressed
+//-- paramètre sortie : aucune
+//-- description : réalise la calibration d'un moteur en recherchant
+//--                successivement les deux fins de course
+//----------------------------------------------------------------------------------//
 static void Stepper_RunCalibration(STEPPER_DATA *stepperData, bool btmPressed, bool topPressed)
 {
     switch(stepperData->calib_state)
@@ -228,7 +237,7 @@ void APP_Tasks ( void )
         
     
     /* Surveillance des fins de course a chaque passage de boucle (pas
-       seulement au tick ~210 ms) pour arreter le moteur au plus vite. */
+       seulement au tick ~200 ms) pour arreter le moteur au plus vite. */
     
     if(!calibration_Moteur_status)
     {
@@ -246,15 +255,21 @@ void APP_Tasks ( void )
 
     if(calibration_status_test && !do_this_once){
         do_this_once = true;        
+        /*une fois la calibration faites, joue un son*/
         Sound_Data.frequency_note_1 = 523.251;
         Sound_Data.frequency_note_2 = 783.991;
         Sound_Data.frequency_note_3 = 932.327;
         Sound_Data.nb_note = 3;
         Sound_Data.sound_for_a_tick = true;
+
+        /* met les deux stepper a leur position d'origine*/
         APP_Move_To(&stepper_1_Data,1000);
         APP_Move_To(&stepper_2_Data,1000);
 
     }
+
+    /*  si la calibration de l'ADC et la calibration des moteurs 
+        on été faites, calide la calibration globale*/
     calibration_status_test = calibration_ADC_status && calibration_Moteur_status;
     /* Check the application's current state. */
     switch ( appData.state )
@@ -271,17 +286,21 @@ void APP_Tasks ( void )
             BSP_InitADC10(); //Init AD
             
             
-            
+            /*start de tout les peripheriques du mcu*/
             DRV_TMR0_Start();
             DRV_TMR1_Start();
             DRV_TMR2_Start();
             DRV_OC0_Enable();
             DRV_OC1_Enable();
             
+            /*initialisation de la memoire*/
             I2C_InitMCP79411();
             Check_If_Memory_exist(&systeme_info);
+
+            /*initialisation du driver de 7 segments*/
             MAX7219_Init(&systeme_info);
             
+            /*initialisation des valeurs des steppers*/
             stepper_1_Data.Position_X = 8000;
             stepper_1_Data.Position_FC1 = 0;
             stepper_1_Data.Position_FC2 = 16000;
@@ -314,10 +333,11 @@ void APP_Tasks ( void )
 
         case APP_STATE_SERVICE_TASKS:
         {
-            
+            /*recuperation de la temperature */
             systeme_info.sys_temp.LM92_Temp = LM92_GetTemperature();
-            systeme_info.best_time_score = 59999;
+            /*gestion des menus*/
             Gestion_Menu(&Joystick_Data);
+            /*retour dans l'etat d'attente*/
             appData.state = APP_STATE_SERVICE_WAIT;
             break;
         }        
@@ -325,15 +345,21 @@ void APP_Tasks ( void )
         
         case APP_STATE_SERVICE_CALIBRATION:
         {
+            /* declaration de toutes les valuers pour les calcules de la moyenne de l'ADC */
             static uint32_t moyenne_adc_joystick1_X = 0;
             static uint32_t moyenne_adc_joystick1_Y = 0;
             static uint32_t moyenne_adc_joystick2_X = 0;
             static uint32_t moyenne_adc_joystick2_Y = 0;
             static uint8_t compteur_moyenne_adc = 0;
+
+            /* lecture de tout les ADC */
             adcRes = BSP_ReadAllADC();
             
+            /*si la calibration n'est pas encore terminer et que le compteur a compter jusqu'a 20*/
             if(compteur_moyenne_adc >= 20 && !calibration_ADC_status){
+                /*la calibraiton est maintenant fini*/
                 calibration_ADC_status = true;
+                /*calcule de la valeur moyenne de l'ADC*/
                 Joystick_Data.Joystick_1_X_Mid_Value = (moyenne_adc_joystick1_X / 20);
                 Joystick_Data.Joystick_1_Y_Mid_Value = (moyenne_adc_joystick1_Y / 20);
                 Joystick_Data.Joystick_2_X_Mid_Value = (moyenne_adc_joystick2_X / 20);
@@ -341,8 +367,11 @@ void APP_Tasks ( void )
             }
             else
             {
+                /*si la calibration n'est pas fini*/
+                /*incrementation du compteur*/
                 compteur_moyenne_adc++;
 
+                /*ajout de la valeur de tout les ADC dans la valeur de calcule de la moyenne*/
                 moyenne_adc_joystick1_X += adcRes.Joystick_1_X;
                 moyenne_adc_joystick1_Y += adcRes.Joystick_1_Y;
                 moyenne_adc_joystick2_X += adcRes.Joystick_2_X;
@@ -355,7 +384,10 @@ void APP_Tasks ( void )
         }
         case APP_STATE_SERVICE_READ_ADC:
         {
+            /*lecture de tout les ADCs*/
             adcRes = BSP_ReadAllADC();
+
+            /*gestion de la value des ADCs afin de pouvoir faire des actions */
             ADC_TO_SPEED(&stepper_1_Data,adcRes.Joystick_1_X , &Joystick_Data.Joystick_1_X_Mid_Value);
             ADC_TO_SPEED(&stepper_2_Data,adcRes.Joystick_2_X , &Joystick_Data.Joystick_2_X_Mid_Value);
             Scan_X_AXIS(&Joystick_Data,adcRes.Joystick_1_Y,Joystick_Data.Joystick_1_Y_Mid_Value,adcRes.Joystick_2_Y,Joystick_Data.Joystick_2_Y_Mid_Value);
@@ -366,10 +398,11 @@ void APP_Tasks ( void )
         
         case APP_STATE_SERVICE_JOYSTICK_X_ACTION:
         {
-            static uint8_t compteur_vitesse_stepper_1 = 0;
-            static uint8_t compteur_vitesse_stepper_2 = 0;
+
+            /*si on est en jeu*/
             if(appData.in_game){
 
+                /*fait la gestion des moteurs en fonction de la position des joysticks*/
                 if(stepper_1_Data.Stepper_Direction == 0){
                     APP_Move_Up(&stepper_1_Data,stepper_1_Data.speed);
                 }
