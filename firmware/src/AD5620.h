@@ -1,11 +1,4 @@
-// AD5620.h
-// Driver DAC 12 bits AD5620CRMZ-1 (nanoDAC, ref interne 1.25V -> pleine echelle 2.5V)
-//
-//	Description : 	Pilotage du DAC AD5620 sur SPI1 (via Mc32SpiUtil)
-//	Auteur 		: 	C. HUBER
-//      Création	: 	13.09.2026
-//
-/*--------------------------------------------------------*/
+
 
 #ifndef _AD5620_H
 #define _AD5620_H
